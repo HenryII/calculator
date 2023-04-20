@@ -1,0 +1,130 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #eee;
+    font-family: Verdana, Geneva, Tahoma, sans-serif; 
+    font-size: 50px;
+    /* font-weight: bold; */
+}
+
+.container {
+    /* background-color: green; */
+    height: 800px;
+    width: 600px;
+    margin: 100px auto;
+    border-radius: 30px;
+}
+
+.calculator {
+    background-color: lightgray;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.5);
+}
+
+.display {
+    background-color: ghostwhite;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 150px;
+    width: 500px;
+    margin-top: 100px;
+    padding:  0 15px;
+    border-radius: 10px;
+    font-size: 94px;
+    font-weight: 100;
+    box-shadow: inset -5px 5px 5px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.keyContainer {
+    /* background-color: blue; */
+    width: 85%;
+    height: 45%;
+    display: flex;
+    margin: 50px 0;
+    gap: 15px;
+}
+
+.numberKeys {
+    /* background-color: rgb(214, 19, 19); */
+    display: flex;
+    align-content: flex-end;
+    flex-wrap: wrap;
+    gap: 15px;
+    flex: 3;
+}
+
+.operatorKeys {
+    /* background-color: darkcyan; */
+    display: flex;
+    /* flex-direction: column;
+    */
+    flex-wrap: wrap;
+    align-content: flex-end;
+     gap: 15px;
+    flex: 1;
+}
+
+.left {
+    display: flex;
+    background-color: darkgray;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    flex: 1 0 30% ;
+    border-radius: 10px;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.left:active {
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.5);
+    background-color: #7f7f7f;
+}
+
+.right {
+    display: flex;
+    background-color: lightsteelblue;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    flex: 1 0 100% ;
+    border-radius: 10px;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.right:active {
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.5);
+    background-color: lightslategrey;
+}
+
+#clear {
+    background-color: lightpink;
+}
+
+#clear:hover {
+    background-color: salmon;
+}
+
+#dec {
+    display: flex;
+    justify-content: center;
+}
+
+.error {
+    color: red;
+    font-size: 30px;
+}
