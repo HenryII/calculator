@@ -16,20 +16,44 @@ const equals = document.querySelector('#equals');
 const clear = document.querySelector('#clear');
 const backspace = document.querySelector('#backspace');
 const decimalPoint = document.querySelector('#dec');
+const negative = document.querySelector('#neg');
+// const percentage = document.querySelector('#perc');
+
 
 clear.addEventListener('click', resetCalc);
 backspace.addEventListener('click', handleBackspace);
 equals.addEventListener('click', checkEquals);
 
+// percentage.addEventListener('click', () => {
+//     if (display.innerText !== '0') {
+//         let x = parseFloat(display.innerText) / 100;
+//         display.innerText = x;
+//         stackArray.push(x);
+//     }
+// })
+
+negative.addEventListener('click', () => {
+    if (display.innerText !== '0') {
+        let x = parseFloat(display.innerText) * -1;//????
+        display.innerText = x;
+    }
+});
+
 decimalPoint.addEventListener('click', (e) => {
+    console.log('in decimalPoint', display.innerText);
     let decimal = e.target.innerText;
-    if (display.innerText === '0') {
+    if (display.innerText === '0') {// Display empty
         stackArray.push(0);
         stackArray.push(decimal);
+        // decimal = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
         display.innerText += decimal
-    } else {
+    } else { // There already exist a number in display - no decimal point
         if (stackArray.indexOf(decimal) === -1) {
-            display.innerText = decimal;
+            if (display.innerText !== '0') {
+                display.innerText += decimal;
+            } else {//????
+                display.innerText = decimal;
+            }
             stackArray.push(decimal);
         }
     }
@@ -75,7 +99,10 @@ function handleNumber(e) {
 
 function handleBackspace(e) {
     display.innerText = '';
-    stackArray.pop();
+    let el = stackArray.pop();
+    if (typeof el !== 'number') {
+        operatorIndex = 0;
+    }
     console.table(stackArray);
     stackArray.forEach(el => {
          display.innerText += el;
@@ -115,17 +142,13 @@ function checkOperator(e) {
             storeKey(oper);
             // Store digits in variable
             operatorIndex = stackArray.indexOf(oper);
-            num1 = parseInt(stackArray.slice(0, operatorIndex).join(''));
+            num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
             console.log({num1});
         }
         updateDisplay(keyPressed);
     }
 }
 
-// function clearDisplay() {
-//     display.innerText = '0';
-// }
-        
 // Update the display with the contents of the stackArray
 function updateDisplay(keyPressed) {
     console.log('disp-innerT:', display.innerText);
@@ -151,6 +174,7 @@ function storeKey(keyPressed) {
 
 function getResult(n1, n2, oper) {
     let result = operate(n1, n2, oper);
+    console.log({result});
     stackArray = [];
     operatorIndex = 0;
     stackArray.push(result);
@@ -159,34 +183,15 @@ function getResult(n1, n2, oper) {
     updateDisplay(result);
 }
 
-// console.log(operate(5, 4, '/'));
-function operate(num1, num2, operator) {
-    console.log('in "Operate"');
-    console.log({operator});
-    let result = 0;
-    switch (operator) {
-        case  ('+') :
-             result = add(num1, num2);
-        break;
-        case  ('-') :
-                result = subtract(num1, num2);
-                break;
-        case  ('x') :
-            result = multiply(num1, num2);
-            break;
-            case  ('/') :
-                if (num2 === 0) {
-                   result = 'What!! Are you serious??!';
-                //    result = 'Division by zero is not allowed';
-                   display.classList.add('error');
-                } else {
-                    result = divide(num1, num2);
-                    result = result.toFixed(4);
-                }
-            break;
-    }
-    console.log({result});
-    return result;
+function operate(a, b, op) {
+    // let calcObj = {
+    return {
+        '+': add(a, b),
+        '-': subtract(a, b),
+        'x': multiply(a, b),
+        '/': divide(a, b)
+        }[op];
+    // return calcObj[op];
 }
 
 function add(a, b) {
@@ -202,5 +207,13 @@ function multiply(a, b) {
 }
 
 function divide(a, b) {
-    return a / b;
+    if (b === 0) {
+        display.classList.add('error');
+        return 'Division by zero error';
+    } else {
+        // let result = a / b;
+        return parseFloat((a / b).toFixed(4));
+        // return result;
+    }
+    // return a / b;
 }
