@@ -35,8 +35,9 @@ body {
 .display {
     background-color: ghostwhite;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
+    /* justify-content: flex-end; */
     height: 150px;
     width: 500px;
     margin-top: 100px;
@@ -44,8 +45,28 @@ body {
     border-radius: 10px;
     font-size: 94px;
     font-weight: 100;
-    box-shadow: inset -5px 5px 8px rgba(0, 0, 0, 0.5);
     overflow: hidden;
+    box-shadow: inset -5px 5px 8px rgba(0, 0, 0, 0.5);
+}
+
+.upper-display {
+    background-color: transparent;
+    display: flex;
+    /* align-items: center; */
+    justify-content: flex-end;
+    flex: 1;
+    height: 10x;
+    width: 100%;
+    font-size: 26px;
+}
+.main-display {
+    background-color: transparent;
+    display: flex;
+    /* align-items: center; */
+    justify-content: flex-end;
+    flex: 2;
+    height: 140px;
+    width: 100%;
 }
 
 .keyContainer {
@@ -92,7 +113,6 @@ body {
 
 .left:active {
     box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.5);
-    /* background-color: #7f7f7f; */
     border: 2px solid black;
 }
 
@@ -127,9 +147,13 @@ body {
     border: 2px solid black;
 }
 
-#dec {
-    display: flex;
-    justify-content: center;
+.material-symbols-outlined {
+    font-size: 48px;
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48
 }
 
 .error {
