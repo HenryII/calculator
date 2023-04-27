@@ -8,6 +8,11 @@ let stackArray = [];
 let operator = false;
 let operatorIndex = 0;
 let keyPressed = '';
+let opKeyPressed = '';
+
+// arrays for use with keyboard events
+const numberArray = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const operatorArray = ['+', '-', '*', '/']
 
 const display = document.querySelector('.main-display');
 const upperDisplay = document.querySelector('.upper-display');
@@ -20,20 +25,58 @@ const decimalPoint = document.querySelector('#dec');
 const negative = document.querySelector('#neg');
 const percentage = document.querySelector('#perc');
 
+document.addEventListener('keydown', handleKeypress);
 
 clear.addEventListener('click', resetCalc);
 backspace.addEventListener('click', handleBackspace);
 equals.addEventListener('click', checkEquals);
+percentage.addEventListener('click', calcPercentage);
+negative.addEventListener('click', toggleNegative);
+decimalPoint.addEventListener('click', handleDecimalPoint);
 
-percentage.addEventListener('click', (e) => {
-    keyPressed = e.target.innerText;
+numbers.forEach((number) => {
+    number.addEventListener('click', handleNumber);
+});
+
+operators.forEach((operator) => {
+    operator.addEventListener('click', checkOperator);
+});
+
+// Handle keyboard events
+function handleKeypress(e) {
+    if (numberArray.includes(e.key)) {
+        handleNumber(e);
+    } else if (operatorArray.includes(e.key)) {
+        checkOperator(e);
+    } else {
+        switch(e.key) {
+            case '=':
+            case 'Enter':
+                checkEquals(e); break;
+            case 'Backspace':
+                handleBackspace(e); break;
+            case '%':
+                calcPercentage(e); break;
+            case 'Delete':
+                resetCalc(e); break;
+            case '.':
+                handleDecimalPoint(e); break;
+        }
+    }
+}
+
+function calcPercentage(e) {
+    if (e.type === 'keydown') {
+        keyPressed = e.key;
+    } else {
+        keyPressed = e.target.innerText;
+    }
     if (display.innerText !== '0') {
-        console.log('in percentage:', display.innerText, {num1}, {num2});
         if ((num1 > 0) && (num2 === 0)) {
             if (operatorIndex > 0) {
-                console.log({oper});
+                upperDisplay.innerText += display.innerText;
+                upperDisplay.innerText += keyPressed;
                 let firstNumber = num1;
-                console.log({oper});
                 if (oper === 'x') {
                   let percResult = getPercentage(num1, num2, oper);
                 } else if ((oper === '+') || (oper === '-')) {
@@ -50,14 +93,11 @@ percentage.addEventListener('click', (e) => {
                     }
                 }
             }
-            console.table(stackArray);
-            
         }
     }
-});
+}
 
 function getPercentage(num1, num2) {
-    console.log('in getPercentage');
     oper = 'x';
     num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
     if (num2 > 0) {
@@ -69,52 +109,47 @@ function getPercentage(num1, num2) {
     oper = '/';
     operatorIndex = stackArray.indexOf(oper);
     num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
-    console.log({num1});
     let result = getResult(num1, num2, oper);
     return result;
 }
 
-negative.addEventListener('click', () => {
+function toggleNegative(e) {
     if (display.innerText !== '0') {
         let negNum = parseFloat(display.innerText) * -1;
         if (operatorIndex === 0) {
             stackArray = [];
             storeKey(negNum);
         } else {
-            stackArray.splice(operatorIndex + 1, 1, negNum);
+            stackArray.splice(operatorIndex + 1, Infinity, negNum);
         }
         display.innerText = negNum;
-        console.log(stackArray);
     }
-});
+}
 
-decimalPoint.addEventListener('click', (e) => {
-    console.log('in decimalPoint', display.innerText);
-    let decimal = e.target.innerText;
-    if (display.innerText === '0') {// Display empty
+function handleDecimalPoint(e) {
+    let decimal = '';
+    if (e.type === 'keydown') {
+        decimal = e.key;
+    } else {
+        decimal = e.target.innerText;
+    }
+    let lastCharIndex = upperDisplay.innerText.length - 1;
+    if (upperDisplay.innerText[lastCharIndex] === opKeyPressed) {
+        if (display.innerText === upperDisplay.innerText.substring(0, lastCharIndex)) {
+    // To allow for a zero to be inserted before the dec for the 2nd number in the calculation if not explicitly entered
+            display.innerText = '0';
+        }
+    }
+    if (display.innerText === '0')  { // Display is empty
         stackArray.push(0, decimal);
-        // stackArray.push(decimal);
-        // decimal = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
-        display.innerText += decimal
-    } else { // There already exist a number in display - no decimal point
-        if (stackArray.indexOf(decimal) === -1) {
-            if (display.innerText !== '0') {
-                display.innerText += decimal;
-            } else {//????
-                display.innerText = decimal;
-            }
+        display.innerText += decimal;
+    } else {   // There already exist a number in display - no      decimal point
+        if (display.innerText.indexOf(decimal) === -1) {
+            display.innerText += decimal;
             stackArray.push(decimal);
         }
     }
-});
-
-numbers.forEach((number) => {
-    number.addEventListener('click', handleNumber);
-});
-
-operators.forEach((operator) => {
-    operator.addEventListener('click', checkOperator);
-});
+}
 
 function resetCalc(e) {
     num1 = 0;
@@ -126,166 +161,204 @@ function resetCalc(e) {
     display.classList.remove('error');
     display.innerText = '0';
     upperDisplay.innerText = '';
-    keyPressed = '0';
-    updateDisplay(keyPressed);
 }
 
 function handleBackspace(e) {
+    console.log('in backspace - enter - opIndx:', operatorIndex);
+    console.log('stackArray:', stackArray);
+    display.classList.remove('error');
     display.innerText = '';
+    upperDisplay.innerText = '';
     let el = stackArray.pop();
     if (typeof el !== 'number') {
-        console.log({el});
         operatorIndex = 0;
-        upperDisplay.innerText = '';
     }
-    console.table(stackArray);
     stackArray.forEach(el => {
-        // if (typeof el !== 'number') {
-        //     upperDisplay.innerText = el;
-        // } else {
-         display.innerText += el;
-        //  upperDisplay.innerText += el;
-        // }
+        el = el === '/' ? '÷' : el;
+        display.innerText += el;
+        upperDisplay.innerText += el;
     });
     if (stackArray.length === 0) {
         display.innerText = '0';
     }
-    return;
+    console.log('in backspace - before exit - opIndx:', operatorIndex);
+    console.log('stackArray:', stackArray);
+    // return;
 }
 
 function checkEquals(e) {
+    if (e.type === 'keydown') { // Keyboard event
+        keyPressed = e.key;
+        keyPressed = e.key === 'Enter' ? '=' : e.key;
+    } else {
+        keyPressed = e.target.innerText;
+    }
     if (stackArray.length !== 0) {
         operator = true;
+        upperDisplay.innerText += display.innerText;
+        upperDisplay.innerText += keyPressed;
         if (operatorIndex > 0) {
-             num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
-        console.log({num1}, {num2});
-            if ((num2 < 0) || (num2 > 0)) {
-                getResult(num1, num2, oper);
-            }
+            num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
+            oper = stackArray[operatorIndex];
+        }
+        // let bool = num2 ? true : false;
+        console.log({num1}, {num2}, {oper});
+        
+        if ( ((num1 < 0) || (num1 >= 0)) &&
+             ((num2 < 0) || (num2 >= 0)) ) {
+            getResult(num1, num2, oper);
+        } else {
+            upperDisplay.innerText = '';
         }
     }
 }
 
 function handleNumber(e) {
+    operator = false;
+    if (e.type === 'keydown') {
+        keyPressed = e.key;
+    } else {
+        keyPressed = e.target.innerText;
+    }
     if ((operatorIndex > 0) && (stackArray.slice(operatorIndex + 1).length === 0)) {
         display.innerText = '0';
     }
-    console.log('in handleNumber');
-    operator = false;
-    keyPressed = e.target.innerText;
     storeKey(keyPressed); 
     updateDisplay(keyPressed);
 }
 
 function checkOperator(e) {
-    console.log('in checkOperator');
-    console.table(stackArray);
-    if (!(stackArray.length === 0)) {
-        let keyPressed = e.target.innerText;
-        operator = true;
-        if (e.target.id === 'divide') {
-            oper = '/';
+    if ((stackArray.length !== 0)) {
+        console.log('in checkOp - before', stackArray);  
+        if (e.type === 'keydown') {
+            opKeyPressed = e.key;
+            opKeyPressed = 
+            opKeyPressed === '*' ? 'x' : opKeyPressed;
         } else {
-            // oper = e.target.innerText;
-            oper = keyPressed;
+            opKeyPressed = e.target.innerText;
         }
-        console.log('operatorInd:', operatorIndex);
-        if (operatorIndex > 0) {// Operator pressed a 2nd time - already exist in stackArray
+        operator = true;
+        oper = e.target.id === 'divide' ? '/' : opKeyPressed;
+        // Operator pressed a 2nd time - already exist in stackArray
+        if (operatorIndex > 0) {
             prevOper = stackArray[operatorIndex]; 
             num2 = parseFloat(stackArray.slice(operatorIndex + 1).join('')); 
-            // console.log({prevOper}, {num1}, {num2});
-            getResult(num1, num2, prevOper);
-            // console.log('after getResult - ', {oper});
-            storeKey(oper);
-            operatorIndex = stackArray.indexOf(oper);
-            num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
+            if ( ((num1 < 0) || (num1 >= 0)) &&
+                 ((num2 < 0) || (num2 >= 0)) ) {
+                let result = getResult(num1, num2, prevOper);
+                if (typeof result === 'number') {
+                    upperDisplay.innerText = result;
+
+                    opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
+                    upperDisplay.innerText += opKeyPressed; 
+
+                    storeKey(oper);
+                    operatorIndex = stackArray.indexOf(oper);
+                    num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
+                }
+
+            }    
         } else {  // Store the operator in the stackArray
-         
-            // console.log('storeKey(oper)');
-            // console.log({operatorIndex});
+            upperDisplay.innerText = display.innerText;
             storeKey(oper);
-            // Store digits in variable
+            // Store digits from array before operator in variable
             operatorIndex = stackArray.indexOf(oper);
             num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
-            console.log({num1});
+
+            opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
+            upperDisplay.innerText += opKeyPressed; 
         }
-        upperDisplay.innerText = keyPressed;    
-        // upperDisplay.innerText += keyPressed;    
-        // updateDisplay(keyPressed);
+        console.log('in checkOp - after', stackArray);  
     }
 }
 
 function storeKey(keyPressed) {
-    console.log(' in storeKey');
     if (operator)  {
         stackArray.push(keyPressed); 
     } else {
-        stackArray.push(parseInt(keyPressed)); 
+        stackArray.push(parseFloat(keyPressed)); 
     }
-    // Check that the result is =< 8 digits(call function)
-    console.table({stackArray});
 }
 
-// Update the display with the contents of the stackArray
+// Update the display with the contents of the key pressed/clicked
 function updateDisplay(keyPressed) {
-    console.log('in updateDisplay');
-    console.log('disp-innerText: before', display.innerText);
     if (display.innerText === '0') {
-        //  upperDisplay.innerText = keyPressed;
          display.innerText = keyPressed;
         } else {
-        // upperDisplay.innerText += keyPressed;
-        display.innerText += keyPressed;
-    }
-    console.log('disp-innerText: after', display.innerText);
+            display.innerText += keyPressed;
+        }
 }
             
 
 function getResult(n1, n2, oper) {
-console.log('in getResult:',{n1}, {n2}, {oper});
     let result = operate(n1, n2, oper);
-    console.log({result});
-    stackArray = [];
-    operatorIndex = 0;
-    stackArray.push(result);
-    // Check that the result is =< 8 digits(call function)
     display.innerText = '0'; 
-    upperDisplay.innerText = ''; 
-    updateDisplay(result);
+    display.innerText = result;
+    if (!(display.classList.contains('error'))) {
+        stackArray = [];
+        operatorIndex = 0;
+        stackArray.push(result);
+    }
     return result;
 }
 
 function operate(a, b, op) {
-    // let calcObj = {
-    return {
-        '+': add(a, b),
-        '-': subtract(a, b),
-        'x': multiply(a, b),
-        '/': divide(a, b)
-        }[op];
-    // return calcObj[op];
+   let result = 0; 
+   switch(op) {
+        case '+': result = add(a, b); break;
+        case '-': result = subtract(a, b); break;
+        case 'x': result = multiply(a, b); break;
+        case '/': result = divide(a, b); break;
+    };
+    let numSize = result.toString().split('').length;
+    console.log('numSize:', numSize);
+    if (numSize > 12) {
+        display.classList.add('error');
+        return 'OVERFLOW ERROR';
+    }
+    return result;
 }
 
 function add(a, b) {
-    return a + b;
+    console.log('+', {a}, {b});
+    let result = (a + b);
+    console.log('result - before:', result);
+    console.log('result - before - rounded:', Math.round(result));
+    if (Math.round(result) !== result) {
+        result = parseFloat((result).toPrecision(12));
+        console.log('result - after:', result);
+    }
+    return result;
 }
 
 function subtract(a, b) {
-    return a - b;
+    console.log('-', {a}, {b});
+    let result =  a - b;
+    console.log('result - before:', result);
+    console.log('result - before - rounded:', Math.round(result));
+    if (Math.round(result) !== result) {
+        result = parseFloat((result).toPrecision(12));
+        console.log('result - after:', result);
+    }
+    return result;
 }
 
 function multiply(a, b) {
-    return a * b;
+    console.log('*', {a}, {b});
+    let result =  ((a * 1000) * b) / 1000;
+    if (Math.round(result) !== result) {
+        result = parseFloat((result).toPrecision(12));
+    }
+    return result;
+
 }
 
 function divide(a, b) {
+    console.log('divide', typeof a,  typeof b);
     if (b === 0) {
         display.classList.add('error');
-        return 'Division by zero error';
+        return 'DIVISION BY ZERO ERROR';
     } else {
-        // let result = a / b;
-        return parseFloat((a / b).toFixed(4));
-        // return result;
+        return parseFloat((a / b).toPrecision(12));
     }
-    // return a / b;
 }
