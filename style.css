@@ -144,7 +144,7 @@ body {
 }
 
 #clear:hover {
-    background-color: salmon;
+    background-color: rgb(230, 170, 230);
 }
 
 #clear:active {

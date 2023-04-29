@@ -71,59 +71,77 @@ function calcPercentage(e) {
     } else {
         keyPressed = e.target.innerText;
     }
-    if (display.innerText !== '0') {
-        if ((num1 > 0) && (num2 === 0)) {
-            if (operatorIndex > 0) {
-                upperDisplay.innerText += display.innerText;
-                upperDisplay.innerText += keyPressed;
-                let firstNumber = num1;
-                if (oper === 'x') {
-                  let percResult = getPercentage(num1, num2, oper);
-                } else if ((oper === '+') || (oper === '-')) {
-                    let firstOper = oper;
-                    let percResult = getPercentage(num1, num2, oper);
-                    getResult(firstNumber, percResult, firstOper);
-                } else if (oper === '/') {
-                    let firstOper = oper;
-                    oper = 'x'
-                    num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
-                    if (num2 > 0) {
-                        let firstResult = getResult(firstNumber, 100, oper);
-                        let result = getResult(firstResult, num2, firstOper);
-                    }
-                }
+
+    if (display.innerText === '0') {
+        return;
+    }
+
+    if ((num1 === 0) || (num2 !== 0)) {
+        return;
+    }
+
+    if (operatorIndex > 0) {
+        upperDisplay.innerText += display.innerText;
+        upperDisplay.innerText += keyPressed;
+        let firstNumber = num1;
+        if (oper === 'x') {
+            let percResult = getPercentage(num1, num2, oper);
+            return;
+        }
+
+        if ((oper === '+') || (oper === '-')) {
+            let firstOper = oper;
+            let percResult = getPercentage(num1, num2, oper);
+            getResult(firstNumber, percResult, firstOper);
+            return;
+        }
+        
+        if (oper === '/') {
+            let firstOper = oper;
+            oper = 'x'
+            num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
+            if (num2 > 0) {
+                let firstResult = getResult(firstNumber, 100, oper);
+                let result = getResult(firstResult, num2, firstOper);
             }
         }
     }
+    // }
 }
 
-function getPercentage(num1, num2) {
+function getPercentage(num1, num2, oper) {
+    let result = 0;
     oper = 'x';
     num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
+    // 1st part of % calculation
     if (num2 > 0) {
-        let result = getResult(num1, num2, oper);
+        result = getResult(num1, num2, oper);
     }
+
     // 2nd part of % calculation
-    stackArray.push('/', 100);
-    num2 = 100;
-    oper = '/';
-    operatorIndex = stackArray.indexOf(oper);
-    num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
-    let result = getResult(num1, num2, oper);
-    return result;
+    if (result) {
+        stackArray.push('/', 100);
+        num2 = 100;
+        oper = '/';
+        operatorIndex = stackArray.indexOf(oper);
+        num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
+        return getResult(num1, num2, oper);
+    }
 }
 
 function toggleNegative(e) {
-    if (display.innerText !== '0') {
-        let negNum = parseFloat(display.innerText) * -1;
-        if (operatorIndex === 0) {
-            stackArray = [];
-            storeKey(negNum);
-        } else {
-            stackArray.splice(operatorIndex + 1, Infinity, negNum);
-        }
-        display.innerText = negNum;
+    if (display.innerText === '0') {
+        return;
     }
+
+    let negNum = parseFloat(display.innerText) * -1;
+    if (operatorIndex === 0) {
+        stackArray = [];
+        storeKey(negNum);
+    } else {
+        stackArray.splice(operatorIndex + 1, Infinity, negNum);
+    }
+    display.innerText = negNum;
 }
 
 function handleDecimalPoint(e) {
@@ -133,6 +151,7 @@ function handleDecimalPoint(e) {
     } else {
         decimal = e.target.innerText;
     }
+
     let lastCharIndex = upperDisplay.innerText.length - 1;
     if (upperDisplay.innerText[lastCharIndex] === opKeyPressed) {
         if (display.innerText === upperDisplay.innerText.substring(0, lastCharIndex)) {
@@ -140,14 +159,18 @@ function handleDecimalPoint(e) {
             display.innerText = '0';
         }
     }
-    if (display.innerText === '0')  { // Display is empty
+
+    // Display is empty
+    if (display.innerText === '0')  { 
         stackArray.push(0, decimal);
         display.innerText += decimal;
-    } else {   // There already exist a number in display - no      decimal point
-        if (display.innerText.indexOf(decimal) === -1) {
-            display.innerText += decimal;
-            stackArray.push(decimal);
-        }
+        return;
+    } 
+    
+    // There already exist a number in display - no decimal point
+    if (display.innerText.indexOf(decimal) === -1) {
+        display.innerText += decimal;
+        stackArray.push(decimal);
     }
 }
 
@@ -164,26 +187,24 @@ function resetCalc(e) {
 }
 
 function handleBackspace(e) {
-    console.log('in backspace - enter - opIndx:', operatorIndex);
-    console.log('stackArray:', stackArray);
     display.classList.remove('error');
     display.innerText = '';
     upperDisplay.innerText = '';
+
     let el = stackArray.pop();
     if (typeof el !== 'number') {
         operatorIndex = 0;
     }
+
     stackArray.forEach(el => {
         el = el === '/' ? '÷' : el;
         display.innerText += el;
         upperDisplay.innerText += el;
     });
+
     if (stackArray.length === 0) {
         display.innerText = '0';
     }
-    console.log('in backspace - before exit - opIndx:', operatorIndex);
-    console.log('stackArray:', stackArray);
-    // return;
 }
 
 function checkEquals(e) {
@@ -193,23 +214,25 @@ function checkEquals(e) {
     } else {
         keyPressed = e.target.innerText;
     }
-    if (stackArray.length !== 0) {
-        operator = true;
-        upperDisplay.innerText += display.innerText;
-        upperDisplay.innerText += keyPressed;
-        if (operatorIndex > 0) {
-            num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
-            oper = stackArray[operatorIndex];
-        }
-        // let bool = num2 ? true : false;
-        console.log({num1}, {num2}, {oper});
-        
-        if ( ((num1 < 0) || (num1 >= 0)) &&
-             ((num2 < 0) || (num2 >= 0)) ) {
-            getResult(num1, num2, oper);
-        } else {
-            upperDisplay.innerText = '';
-        }
+
+    if (stackArray.length === 0) {
+        return;
+    }
+
+    operator = true;
+    upperDisplay.innerText += display.innerText;
+    upperDisplay.innerText += keyPressed;
+
+    if (operatorIndex > 0) {
+        num2 = parseFloat(stackArray.slice(operatorIndex + 1).join(''));
+        oper = stackArray[operatorIndex];
+    }
+    
+    if ( ((num1 < 0) || (num1 >= 0)) &&
+         ((num2 < 0) || (num2 >= 0)) ) {
+        getResult(num1, num2, oper);
+    } else {
+        upperDisplay.innerText = '';
     }
 }
 
@@ -220,6 +243,7 @@ function handleNumber(e) {
     } else {
         keyPressed = e.target.innerText;
     }
+
     if ((operatorIndex > 0) && (stackArray.slice(operatorIndex + 1).length === 0)) {
         display.innerText = '0';
     }
@@ -228,48 +252,53 @@ function handleNumber(e) {
 }
 
 function checkOperator(e) {
-    if ((stackArray.length !== 0)) {
-        console.log('in checkOp - before', stackArray);  
-        if (e.type === 'keydown') {
-            opKeyPressed = e.key;
-            opKeyPressed = 
-            opKeyPressed === '*' ? 'x' : opKeyPressed;
-        } else {
-            opKeyPressed = e.target.innerText;
-        }
-        operator = true;
-        oper = e.target.id === 'divide' ? '/' : opKeyPressed;
-        // Operator pressed a 2nd time - already exist in stackArray
-        if (operatorIndex > 0) {
-            prevOper = stackArray[operatorIndex]; 
-            num2 = parseFloat(stackArray.slice(operatorIndex + 1).join('')); 
-            if ( ((num1 < 0) || (num1 >= 0)) &&
-                 ((num2 < 0) || (num2 >= 0)) ) {
-                let result = getResult(num1, num2, prevOper);
-                if (typeof result === 'number') {
-                    upperDisplay.innerText = result;
-
-                    opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
-                    upperDisplay.innerText += opKeyPressed; 
-
-                    storeKey(oper);
-                    operatorIndex = stackArray.indexOf(oper);
-                    num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
-                }
-
-            }    
-        } else {  // Store the operator in the stackArray
-            upperDisplay.innerText = display.innerText;
-            storeKey(oper);
-            // Store digits from array before operator in variable
-            operatorIndex = stackArray.indexOf(oper);
-            num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
-
-            opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
-            upperDisplay.innerText += opKeyPressed; 
-        }
-        console.log('in checkOp - after', stackArray);  
+    if ((stackArray.length === 0)) {
+        return;
     }
+  
+    if (e.type === 'keydown') {
+        opKeyPressed = e.key;
+        opKeyPressed = 
+        opKeyPressed === '*' ? 'x' : opKeyPressed;
+    } else {
+        opKeyPressed = e.target.innerText;
+    }
+
+    operator = true;
+    oper = e.target.id === 'divide' ? '/' : opKeyPressed;
+
+    // Operator pressed a 2nd time - already exist in stackArray
+    if (operatorIndex > 0) {
+        prevOper = stackArray[operatorIndex]; 
+        num2 = parseFloat(stackArray.slice(operatorIndex + 1).join('')); 
+        if ( ((num1 < 0) || (num1 >= 0)) &&
+             ((num2 < 0) || (num2 >= 0)) ) {
+            let result = getResult(num1, num2, prevOper);
+            if (typeof result === 'number') {
+                upperDisplay.innerText = result;
+
+                opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
+                upperDisplay.innerText += opKeyPressed; 
+
+                storeKey(oper);
+                operatorIndex = stackArray.indexOf(oper);
+                num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
+            }
+
+        } 
+        return;   
+    } 
+
+    // Store the operator in the stackArray
+    storeKey(oper);
+    // Store digits before operator in array, in variable
+    operatorIndex = stackArray.indexOf(oper);
+    num1 = parseFloat(stackArray.slice(0, operatorIndex).join(''));
+    
+    // Update upper part of the display
+    upperDisplay.innerText = display.innerText;
+    opKeyPressed = opKeyPressed === '/' ? '÷' : opKeyPressed;
+    upperDisplay.innerText += opKeyPressed; 
 }
 
 function storeKey(keyPressed) {
@@ -284,12 +313,11 @@ function storeKey(keyPressed) {
 function updateDisplay(keyPressed) {
     if (display.innerText === '0') {
          display.innerText = keyPressed;
-        } else {
-            display.innerText += keyPressed;
-        }
+    } else {
+        display.innerText += keyPressed;
+    }
 }
             
-
 function getResult(n1, n2, oper) {
     let result = operate(n1, n2, oper);
     display.innerText = '0'; 
@@ -311,7 +339,6 @@ function operate(a, b, op) {
         case '/': result = divide(a, b); break;
     };
     let numSize = result.toString().split('').length;
-    console.log('numSize:', numSize);
     if (numSize > 12) {
         display.classList.add('error');
         return 'OVERFLOW ERROR';
@@ -320,45 +347,34 @@ function operate(a, b, op) {
 }
 
 function add(a, b) {
-    console.log('+', {a}, {b});
     let result = (a + b);
-    console.log('result - before:', result);
-    console.log('result - before - rounded:', Math.round(result));
     if (Math.round(result) !== result) {
-        result = parseFloat((result).toPrecision(12));
-        console.log('result - after:', result);
+        result = parseFloat((result).toPrecision(10));
     }
     return result;
 }
 
 function subtract(a, b) {
-    console.log('-', {a}, {b});
     let result =  a - b;
-    console.log('result - before:', result);
-    console.log('result - before - rounded:', Math.round(result));
     if (Math.round(result) !== result) {
-        result = parseFloat((result).toPrecision(12));
-        console.log('result - after:', result);
+        result = parseFloat((result).toPrecision(10));
     }
     return result;
 }
 
 function multiply(a, b) {
-    console.log('*', {a}, {b});
     let result =  ((a * 1000) * b) / 1000;
     if (Math.round(result) !== result) {
-        result = parseFloat((result).toPrecision(12));
+        result = parseFloat((result).toPrecision(10));
     }
     return result;
-
 }
 
 function divide(a, b) {
-    console.log('divide', typeof a,  typeof b);
     if (b === 0) {
         display.classList.add('error');
         return 'DIVISION BY ZERO ERROR';
     } else {
-        return parseFloat((a / b).toPrecision(12));
+        return parseFloat((a / b).toPrecision(10));
     }
 }
